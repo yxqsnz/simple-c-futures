@@ -38,7 +38,6 @@ int Fpush(FIFO *queue, void *handle) {
 enum future_state_e { PEDING, READY };
 
 struct future_s {
-  void *Result;
   void *Data;
   enum future_state_e State;
   struct future_s *(*Pool)(struct future_s *);
