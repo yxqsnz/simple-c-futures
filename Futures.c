@@ -69,7 +69,6 @@ future_t read_pool(future_t this) {
   } else {
     read->now +=
         fread(read->buffer + read->now, 1, read->size - read->now, read->file);
-    printf("now: %ld\n", read->now);
     return this;
   }
   return this;
@@ -125,7 +124,8 @@ int main() {
   future_runtime_t rt = new_rt();
   FILE *f = fopen("Hello.txt", "r");
   char data[256] = {};
-  await(rt, AsyncRead(f, data, 13));
+  await(rt, AsyncRead(f, data, 12));
   run_rt(rt);
+  puts(data);
   fclose(f);
 }
