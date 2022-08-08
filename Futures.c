@@ -105,7 +105,13 @@ future_runtime_t new_rt() {
   return this;
 }
 
-void await(future_runtime_t rt, future_t fut) { Fpush(rt->futures, fut); }
+void pushF(future_runtime_t rt, future_t fut) {
+  if (fut == NULL) {
+    puts("tried to await a null future");
+    abort();
+  }
+  Fpush(rt->futures, fut);
+}
 void run_rt(future_runtime_t rt) {
   future_t current;
   while (1) {
@@ -113,7 +119,9 @@ void run_rt(future_runtime_t rt) {
     if (current == NULL) {
       break;
     }
-    if (current->State == PEDING) {
+    if (current->State == READY) {
+      free(current);
+    } else {
       current = current->Pool(current);
       Fpush(rt->futures, current);
     }
@@ -123,7 +131,7 @@ int main() {
   future_runtime_t rt = new_rt();
   FILE *f = fopen("Hello.txt", "r");
   char data[256] = {};
-  await(rt, AsyncRead(f, data, 12));
+  pushF(rt, AsyncRead(f, data, 12));
   run_rt(rt);
   puts(data);
   fclose(f);
