@@ -40,7 +40,7 @@ enum future_state_e { PEDING, READY };
 struct future_s {
   void *Data;
   enum future_state_e State;
-  struct future_s *(*Pool)(struct future_s *);
+  struct future_s *(*Poll)(struct future_s *);
 };
 
 typedef struct future_s *future_t;
@@ -59,7 +59,7 @@ struct read_s {
 
 typedef struct read_s *read_t;
 
-future_t read_pool(future_t this) {
+future_t readPoll(future_t this) {
   FILE *f = this->Data;
   read_t read = this->Data;
   if (read->now == read->size) {
@@ -84,7 +84,7 @@ future_t AsyncRead(FILE *f, char *buffer, size_t size) {
   read->now = 0;
 
   this->State = PEDING;
-  this->Pool = read_pool;
+  this->Poll = readPoll;
   return this;
 }
 
@@ -112,6 +112,7 @@ void pushF(future_runtime_t rt, future_t fut) {
   }
   Fpush(rt->futures, fut);
 }
+
 void run_rt(future_runtime_t rt) {
   future_t current;
   while (1) {
@@ -122,7 +123,7 @@ void run_rt(future_runtime_t rt) {
     if (current->State == READY) {
       free(current);
     } else {
-      current = current->Pool(current);
+      current = current->Poll(current);
       Fpush(rt->futures, current);
     }
   }
